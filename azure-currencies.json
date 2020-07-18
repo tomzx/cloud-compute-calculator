@@ -1,0 +1,194 @@
+{
+  "usd": {
+    "name": "USD",
+    "locale": "en-us",
+    "glyph": "$",
+    "conversion": 1.0,
+    "onPremConversion": 1.0,
+    "invertGlyph": false
+  },
+  "eur": {
+    "name": "EUR",
+    "locale": "de-de",
+    "glyph": "&euro;",
+    "conversion": 0.8433,
+    "onPremConversion": 1.07059,
+    "invertGlyph": false
+  },
+  "chf": {
+    "name": "CHF",
+    "locale": "de-ch",
+    "glyph": "CHF&nbsp;",
+    "conversion": 0.9841,
+    "onPremConversion": 1.23257,
+    "invertGlyph": false
+  },
+  "ars": {
+    "name": "ARS",
+    "locale": "es-ar",
+    "glyph": "$",
+    "conversion": 61.43,
+    "onPremConversion": 61.43,
+    "invertGlyph": false
+  },
+  "aud": {
+    "name": "AUD",
+    "locale": "en-au",
+    "glyph": "$",
+    "conversion": 1.373,
+    "onPremConversion": 1.44928,
+    "invertGlyph": false
+  },
+  "dkk": {
+    "name": "DKK",
+    "locale": "da-dk",
+    "glyph": "kr",
+    "conversion": 6.2934,
+    "onPremConversion": 7.97003,
+    "invertGlyph": false
+  },
+  "cad": {
+    "name": "CAD",
+    "locale": "en-ca",
+    "glyph": "$",
+    "conversion": 1.28,
+    "onPremConversion": 1.336,
+    "invertGlyph": false
+  },
+  "idr": {
+    "name": "IDR",
+    "locale": "id-id",
+    "glyph": "Rp",
+    "conversion": 15640.0,
+    "onPremConversion": 15640.0,
+    "invertGlyph": false
+  },
+  "jpy": {
+    "name": "JPY",
+    "locale": "ja-jp",
+    "glyph": "&yen;",
+    "conversion": 112.0,
+    "onPremConversion": 119.0,
+    "invertGlyph": false
+  },
+  "krw": {
+    "name": "KRW",
+    "locale": "ko-kr",
+    "glyph": "&#8361;",
+    "conversion": 1124.65,
+    "onPremConversion": 1080.0,
+    "invertGlyph": false
+  },
+  "nzd": {
+    "name": "NZD",
+    "locale": "en-nz",
+    "glyph": "$",
+    "conversion": 1.511944,
+    "onPremConversion": 1.72413,
+    "invertGlyph": false
+  },
+  "nok": {
+    "name": "NOK",
+    "locale": "nb-no",
+    "glyph": "kr",
+    "conversion": 8.1141,
+    "onPremConversion": 10.1851,
+    "invertGlyph": false
+  },
+  "rub": {
+    "name": "RUB",
+    "locale": "ru-ru",
+    "glyph": "РУБ",
+    "conversion": 62.5,
+    "onPremConversion": 60.23732,
+    "invertGlyph": true
+  },
+  "sar": {
+    "name": "SAR",
+    "locale": "ar-sa",
+    "glyph": "SR&nbsp;",
+    "conversion": 3.75,
+    "onPremConversion": 3.75,
+    "invertGlyph": false
+  },
+  "zar": {
+    "name": "ZAR",
+    "locale": "en-za",
+    "glyph": "R&nbsp;",
+    "conversion": 15.2,
+    "onPremConversion": 15.2,
+    "invertGlyph": false
+  },
+  "sek": {
+    "name": "SEK",
+    "locale": "sv-se",
+    "glyph": "kr",
+    "conversion": 8.737041,
+    "onPremConversion": 10.96844,
+    "invertGlyph": true
+  },
+  "twd": {
+    "name": "TWD",
+    "locale": "zh-tw",
+    "glyph": "NT$",
+    "conversion": 30.0542,
+    "onPremConversion": 34.4,
+    "invertGlyph": false
+  },
+  "try": {
+    "name": "TRY",
+    "locale": "tr-tr",
+    "glyph": "₺&nbsp;",
+    "conversion": 5.6038,
+    "onPremConversion": 5.6038,
+    "invertGlyph": false
+  },
+  "gbp": {
+    "name": "GBP",
+    "locale": "en-gb",
+    "glyph": "&pound;",
+    "conversion": 0.745309,
+    "onPremConversion": 0.9575,
+    "invertGlyph": false
+  },
+  "mxn": {
+    "name": "MXN",
+    "locale": "es-mx",
+    "glyph": "MXN$",
+    "conversion": 19.3,
+    "onPremConversion": 19.3,
+    "invertGlyph": false
+  },
+  "myr": {
+    "name": "MYR",
+    "locale": "ms-my",
+    "glyph": "RM$",
+    "conversion": 4.2,
+    "onPremConversion": 4.2,
+    "invertGlyph": false
+  },
+  "inr": {
+    "name": "INR",
+    "locale": "hi-in",
+    "glyph": "₹",
+    "conversion": 66.09625,
+    "onPremConversion": 69.10062,
+    "invertGlyph": false
+  },
+  "hkd": {
+    "name": "HKD",
+    "locale": "zh-hk",
+    "glyph": "HK$",
+    "conversion": 7.76,
+    "onPremConversion": 7.76,
+    "invertGlyph": false
+  },
+  "brl": {
+    "name": "BRL",
+    "locale": "pt-br",
+    "glyph": "R$",
+    "conversion": 4.049132,
+    "onPremConversion": 4.3092,
+    "invertGlyph": false
+  }
+}
