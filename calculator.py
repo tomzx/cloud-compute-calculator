@@ -1,5 +1,6 @@
 import json
 import logging
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import NamedTuple
@@ -10,7 +11,9 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-file = "azure-virtual-machines.json"
+current_directory = Path(__file__).parent
+
+file = current_directory / "azure-virtual-machines.json"
 logger.debug(f"Loading {file}")
 with Path(file).open("r") as f:
     azure_virtual_machines = json.load(f)
@@ -18,7 +21,7 @@ with Path(file).open("r") as f:
 regions = azure_virtual_machines["regions"]
 regions_slug = [region["slug"] for region in regions]
 
-file = "azure-currencies.json"
+file = current_directory / "azure-currencies.json"
 logger.debug(f"Loading {file}")
 with Path(file).open("r") as f:
     azure_currencies = json.load(f)
@@ -26,7 +29,8 @@ with Path(file).open("r") as f:
 argument_parser = ArgumentParser()
 argument_parser.add_argument(
     "query",
-    help="Compute resources requirements (cpu,mem,gpu,gpu_mem,total_hours) in CSV format",
+    help="Compute resources requirements (cpu,mem,gpu,gpu_mem,total_hours) "
+         "in CSV format, use - to read from stdin",
 )
 default_region = "us-west"
 argument_parser.add_argument(
@@ -102,9 +106,13 @@ logger.debug(
     f"of per hour pricing or the compute not being available in the selected region."
 )
 
-query = pd.read_csv(args.query)
-logger.info("Your query:")
-logger.info(query)
+logger.info(f"Region: {args.region}")
+logger.info(f"Tier: {args.tier}")
+logger.info(f"Currency: {args.currency}")
+
+file = sys.stdin if args.query == "-" else args.query
+query = pd.read_csv(file)
+logger.info(f"Your query:\n{query}")
 
 
 class ComputeQuery(NamedTuple):
@@ -153,8 +161,10 @@ for compute_query in query.itertuples(index=False, name="ComputeQuery"):
 
 matches = pd.DataFrame.from_records(matches)
 matches = matches.groupby(["offer", "cpu", "mem", "gpu", "gpu_mem", "price"]).sum()
+matches = matches.sort_values(["total"])
+matches = matches.reset_index()
 
-logger.info(f"Detailed costs: {matches}")
+logger.info(f"Detailed costs (sorted from lowest to highest total):\n{matches}")
 
 total_cost = round(total_cost, 2)
 logger.debug(f"Total cost (USD): {total_cost}")
