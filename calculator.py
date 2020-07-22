@@ -8,6 +8,14 @@ from typing import NamedTuple
 import pandas as pd
 
 # TODO: Figure out why it picks linux-d32sv4-standard and linux-d32v4-standard when they are the same price and same spec
+# TODO: Support reservation costs estimates
+# TODO: Support other requirements (maximize RAM, then CPU)
+# TODO: Find costs around a given budget
+# TODO: Better match CPU models?
+
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", None)
+pd.set_option('display.width', None)
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +43,10 @@ argument_parser.add_argument(
 default_region = "us-west"
 argument_parser.add_argument(
     "--region",
-    help=f"Region where the services will be located (default: {default_region})",
-    default=default_region,
+    help=f"Region(s) where the services will be located (default: {default_region})",
+    default=[default_region],
     choices=regions_slug,
+    nargs="+",
 )
 default_currency = "usd"
 argument_parser.add_argument(
@@ -46,12 +55,13 @@ argument_parser.add_argument(
     default=default_currency,
     choices=azure_currencies.keys(),
 )
-# TODO: Support tiers
 default_tier = "standard"
 argument_parser.add_argument(
     "--tier",
-    help=f"Tier to use for compute (default: {default_tier})",
+    help=f"Tier(s) to use for compute (default: {default_tier})",
+    default=[default_tier],
     choices=["basic", "lowpriority", "standard"],
+    nargs="+",
 )
 argument_parser.add_argument(
     "--log-level",
@@ -63,6 +73,10 @@ args = argument_parser.parse_args()
 
 logging.basicConfig(level=args.log_level)
 
+logger.info(f"Regions: {args.region}")
+logger.info(f"Tiers: {args.tier}")
+logger.info(f"Currency: {args.currency}")
+
 offers = azure_virtual_machines["offers"]
 linux_offers = {
     offer_name: offer
@@ -71,44 +85,42 @@ linux_offers = {
 }
 logger.debug(f"{len(linux_offers)} linux offers found.")
 
+tiers = tuple(args.tier)
 # Prepare a dataframe of compute resources
 offer_rows = []
 for offer_name, linux_offer in linux_offers.items():
-    if args.tier is not None:
-        if not offer_name.endswith(args.tier):
-            continue
+    if not offer_name.endswith(tiers):
+        continue
 
     per_hour_pricing = linux_offer["prices"].get("perhour")
 
     if not per_hour_pricing:
         continue
 
-    region_price = per_hour_pricing.get(args.region)
+    for region in args.region:
+        region_price = per_hour_pricing.get(region)
 
-    if not region_price:
-        continue
+        if not region_price:
+            continue
 
-    offer_rows += [
-        {
-            "offer": offer_name,
-            "cpu": linux_offer["cores"],
-            "mem": linux_offer["ram"],
-            # TODO: Read GPU info from the gpu field
-            "gpu": 1 if linux_offer.get("gpu") is not None else 0,
-            "gpu_mem": 12 if linux_offer.get("gpu") is not None else 0,
-            "price": region_price["value"],
-        }
-    ]
+        offer_rows += [
+            {
+                "offer": offer_name,
+                "region": region,
+                "cpu": linux_offer["cores"],
+                "mem": linux_offer["ram"],
+                # TODO: Read GPU info from the gpu field
+                "gpu": 1 if linux_offer.get("gpu") is not None else 0,
+                "gpu_mem": 12 if linux_offer.get("gpu") is not None else 0,
+                "price": region_price["value"],
+            }
+        ]
 compute_df = pd.DataFrame.from_records(offer_rows)
 logger.debug(
     f"Created compute_df with {len(compute_df)} entries. "
     f"Some entries may have been filtered due to the unavailability "
     f"of per hour pricing or the compute not being available in the selected region."
 )
-
-logger.info(f"Region: {args.region}")
-logger.info(f"Tier: {args.tier}")
-logger.info(f"Currency: {args.currency}")
 
 file = sys.stdin if args.query == "-" else args.query
 query = pd.read_csv(file)
@@ -160,7 +172,7 @@ for compute_query in query.itertuples(index=False, name="ComputeQuery"):
     total_cost += compute_cost
 
 matches = pd.DataFrame.from_records(matches)
-matches = matches.groupby(["offer", "cpu", "mem", "gpu", "gpu_mem", "price"]).sum()
+matches = matches.groupby(["region", "offer", "cpu", "mem", "gpu", "gpu_mem", "price"]).sum()
 matches = matches.sort_values(["total"])
 matches = matches.reset_index()
 
