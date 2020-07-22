@@ -7,11 +7,21 @@ from typing import NamedTuple
 
 import pandas as pd
 
+# Assumptions:
+# * All compute time for a given compute specification can be done on a single machine
+# * A month of compute time is 730 hours
+# * All compute is completed within a month
+#   * For 1/3 years reserved instances, we give the compute costs in hour only, be aware you will need to pay the full
+#     730h/month that a reserved instance cost x 12 months x number of years selected
+
 # TODO: Figure out why it picks linux-d32sv4-standard and linux-d32v4-standard when they are the same price and same spec
 # TODO: Support reservation costs estimates
 # TODO: Support other requirements (maximize RAM, then CPU)
 # TODO: Find costs around a given budget
 # TODO: Better match CPU models?
+# TODO: Consider specific compute offers (e.g., DB)
+# TODO: For 1/3 years reserved, compute the total payment required
+# TODO: For 1/3 years reserved,
 
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
@@ -63,6 +73,14 @@ argument_parser.add_argument(
     choices=["basic", "lowpriority", "standard"],
     nargs="+",
 )
+default_pricing_scheme = "perhour"
+argument_parser.add_argument(
+    "--pricing-scheme",
+    help=f"Pricing scheme(s) to consider (default: {default_pricing_scheme})",
+    default=[default_pricing_scheme],
+    choices=["perhour", "perhourspot", "perhouroneyearreserved", "perhourthreeyearreserved"],
+    nargs="+",
+)
 argument_parser.add_argument(
     "--log-level",
     default=logging.getLevelName(logging.INFO),
@@ -75,6 +93,7 @@ logging.basicConfig(level=args.log_level)
 
 logger.info(f"Regions: {args.region}")
 logger.info(f"Tiers: {args.tier}")
+logger.info(f"Pricing schemes: {args.pricing_scheme}")
 logger.info(f"Currency: {args.currency}")
 
 offers = azure_virtual_machines["offers"]
@@ -92,29 +111,32 @@ for offer_name, linux_offer in linux_offers.items():
     if not offer_name.endswith(tiers):
         continue
 
-    per_hour_pricing = linux_offer["prices"].get("perhour")
+    for pricing_scheme in args.pricing_scheme:
+        per_hour_pricing = linux_offer["prices"].get(pricing_scheme)
 
-    if not per_hour_pricing:
-        continue
-
-    for region in args.region:
-        region_price = per_hour_pricing.get(region)
-
-        if not region_price:
+        if not per_hour_pricing:
             continue
 
-        offer_rows += [
-            {
-                "offer": offer_name,
-                "region": region,
-                "cpu": linux_offer["cores"],
-                "mem": linux_offer["ram"],
-                # TODO: Read GPU info from the gpu field
-                "gpu": 1 if linux_offer.get("gpu") is not None else 0,
-                "gpu_mem": 12 if linux_offer.get("gpu") is not None else 0,
-                "price": region_price["value"],
-            }
-        ]
+        for region in args.region:
+            region_price = per_hour_pricing.get(region)
+
+            if not region_price:
+                continue
+
+            offer_rows += [
+                {
+                    "region": region,
+                    "offer": offer_name,
+                    "pricing_scheme": pricing_scheme,
+                    "cpu": linux_offer["cores"],
+                    "mem": linux_offer["ram"],
+                    # TODO: Read GPU info from the gpu field
+                    "gpu": 1 if linux_offer.get("gpu") is not None else 0,
+                    "gpu_mem": 12 if linux_offer.get("gpu") is not None else 0,
+                    "price": region_price["value"],
+                }
+            ]
+
 compute_df = pd.DataFrame.from_records(offer_rows)
 logger.debug(
     f"Created compute_df with {len(compute_df)} entries. "
@@ -172,7 +194,7 @@ for compute_query in query.itertuples(index=False, name="ComputeQuery"):
     total_cost += compute_cost
 
 matches = pd.DataFrame.from_records(matches)
-matches = matches.groupby(["region", "offer", "cpu", "mem", "gpu", "gpu_mem", "price"]).sum()
+matches = matches.groupby(["region", "offer", "pricing_scheme", "cpu", "mem", "gpu", "gpu_mem", "price"]).sum()
 matches = matches.sort_values(["total"])
 matches = matches.reset_index()
 
